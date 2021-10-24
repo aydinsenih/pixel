@@ -16,5 +16,5 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build the Docker image
       run: |
-        docker build . --file Dockerfile --tag my-image-name:$(pipeline.id)
-        docker push my-image-name:$(pipeline.id)
+        docker build . --file Dockerfile --tag my-image-name: << pipeline.number >>
+        docker push my-image-name: << pipeline.number >>
