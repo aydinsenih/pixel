@@ -1,5 +1,6 @@
 FROM node:latest
-WORKDIR /up
-COPY . .
-RUN npm install
-RUN npm run build
+WORKDIR /app
+COPY package.json /app
+RUN npm ci --only=production && npm cache clean --force
+COPY . /app
+EXPOSE 8081
