@@ -69,7 +69,7 @@ const testObj2 = new THREE.Mesh(
     new THREE.BoxGeometry(),
     new THREE.MeshBasicMaterial({ color: 0xaaaaaa })
 );
-testObj2.position.set(250, 0, 250);
+testObj2.scale.set(50, 50, 50);
 scene.add(testObj2);
 
 const body = new THREE.Mesh(geometry, bodyMesh);
@@ -110,7 +110,7 @@ function move(delta: number) {
     camera.getWorldDirection(direction);
     // console.log(direction);
 
-    const matrix = camera.matrixWorld;
+    // const matrix = camera.matrixWorld;
     //console.log(matrix)
     // const forward = new THREE.Vector3(
     //     -matrix.elements[8],
@@ -130,28 +130,44 @@ function move(delta: number) {
     // direction.x =
     //     Number(playerController.moveRight) - Number(playerController.moveLeft);
     direction.normalize(); // this ensures consistent movements in all directions
+    
+    if(playerController.moveForward || playerController.moveRight || playerController.moveBackward || playerController.moveLeft){
+        if (playerController.moveForward) {
+    
+            //direction.add(forward.multiplyScalar(0.000001));
+            velocity.z += direction.z * 4000.0 * delta;
+            velocity.x += direction.x * 4000.0 * delta;
+        }
+        if (playerController.moveRight) {
+            //direction.add(forward.multiplyScalar(0.000001));
+            velocity.z += direction.x * 4000.0 * delta;
+            velocity.x -= direction.z * 4000.0 * delta;
+        }
+        if (playerController.moveBackward) {
+            //direction.add(forward.multiplyScalar(0.000001));
+            velocity.z -= direction.z * 4000.0 * delta;
+            velocity.x -= direction.x * 4000.0 * delta;
+        }
+        if (playerController.moveLeft) {
+            //direction.add(forward.multiplyScalar(0.000001));
+            velocity.z -= direction.x * 4000.0 * delta;
+            velocity.x += direction.z * 4000.0 * delta;
+        }
 
-    if (playerController.moveForward) {
-
-        //direction.add(forward.multiplyScalar(0.000001));
-        velocity.z += direction.z * 4000.0 * delta;
-        velocity.x += direction.x * 4000.0 * delta;
+        const playerPosition = playerParent.position;
+        playerParent.position.set(
+            playerPosition.x + velocity.x * delta,
+            0,
+            playerPosition.z + velocity.z * delta
+        );
+        const cPosition = camera.position;
+        camera.position.set(
+            cPosition.x + velocity.x * delta,
+            cPosition.y,
+            cPosition.z + velocity.z * delta
+        );
     }
-    if (playerController.moveRight) {
-        //direction.add(forward.multiplyScalar(0.000001));
-        velocity.z += direction.x * 4000.0 * delta;
-        velocity.x -= direction.z * 4000.0 * delta;
-    }
-    if (playerController.moveBackward) {
-        //direction.add(forward.multiplyScalar(0.000001));
-        velocity.z -= direction.z * 4000.0 * delta;
-        velocity.x -= direction.x * 4000.0 * delta;
-    }
-    if (playerController.moveLeft) {
-        //direction.add(forward.multiplyScalar(0.000001));
-        velocity.z -= direction.x * 4000.0 * delta;
-        velocity.x += direction.z * 4000.0 * delta;
-    }
+    
 
     // if (
     //     playerController.moveForward ||
@@ -165,18 +181,7 @@ function move(delta: number) {
 
     // controls.moveRight(-velocity.x * delta);
     // controls.moveForward(-velocity.z * delta);
-    const playerPosition = playerParent.position;
-    playerParent.position.set(
-        playerPosition.x + velocity.x * delta,
-        0,
-        playerPosition.z + velocity.z * delta
-    );
-    const cPosition = camera.position;
-    camera.position.set(
-        cPosition.x + velocity.x * delta,
-        cPosition.y,
-        cPosition.z + velocity.z * delta
-    );
+    
     //console.log(playerPosition);
 
     //humanGroup.updateMatrix();
@@ -186,6 +191,16 @@ const playerController = new PlayerController(humanGroup);
 document.addEventListener("keydown", playerController.onKeyDown);
 document.addEventListener("keyup", playerController.onKeyUp);
 
+controls.minDistance = 500
+controls.maxDistance = 1000
+controls.minPolarAngle = Math.PI / 4
+controls.maxPolarAngle = Math.PI / 2.1
+controls.rotateSpeed = 0.2
+controls.enableDamping = true
+controls.dampingFactor = 0.2
+
+
+
 function animate() {
     requestAnimationFrame(animate);
     const time = performance.now();
@@ -194,21 +209,48 @@ function animate() {
     move(delta);
 
     //controls.target.set(playerParent.position.x, playerParent.position.y, playerParent.position.z)
-    controls.target.set(playerParent.position.x, playerParent.position.y, playerParent.position.z)
-    controls.minZoom = 100
-    controls.maxZoom = 1000
-    controls.update();
+    
+    var playerDirection = new THREE.Vector3();
+    humanGroup.getWorldDirection(playerDirection)
+    playerDirection.normalize();
 
-    var newDir = new THREE.Vector3(100, 0, 100);
-    var pos = new THREE.Vector3();
-    pos.addVectors(
-        new Vector3(camera.position.x, 0, camera.position.z),
-        playerParent.position
-    );
+    const r = 250
+    if(playerDirection.z === 0){
+        playerDirection.z = 0.001
+    }
+    if(playerDirection.x === 0){
+        playerDirection.x = 0.001
+    }
+
+
     var direction = new THREE.Vector3();
     camera.getWorldDirection(direction);
     direction.multiplyScalar(Number.MAX_SAFE_INTEGER)
-    humanGroup.lookAt(direction);
+    humanGroup.lookAt(direction.x, playerParent.position.y, direction.z);
+
+    const a = Math.sqrt(r*r / (playerDirection.x*playerDirection.x + playerDirection.z*playerDirection.z))
+    // const angle = Math.atan2(playerDirection.x , playerDirection.z)
+    // const a = Math.sin(angle) * r / playerDirection.x
+    // const b = Math.sin(angle) * r / playerDirection.z
+
+
+    let aimX =  playerParent.position.x + playerDirection.x * a
+    let aimY =  playerParent.position.y + playerDirection.y
+    let aimZ =  playerParent.position.z + playerDirection.z * a
+
+    const distance = controls.getDistance()
+    testObj2.position.set(aimX, aimY, aimZ);
+    console.log(distance)
+    controls.target.set(aimX, aimY, aimZ)
+    controls.update();
+
+    // var newDir = new THREE.Vector3(100, 0, 100);
+    // var pos = new THREE.Vector3();
+    // pos.addVectors(
+    //     new Vector3(camera.position.x, 0, camera.position.z),
+    //     playerParent.position
+    // );
+    
 
     // const tq = new THREE.Quaternion();
     // playerParent.getWorldQuaternion(tq);
