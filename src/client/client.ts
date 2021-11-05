@@ -130,10 +130,10 @@ function move(delta: number) {
     // direction.x =
     //     Number(playerController.moveRight) - Number(playerController.moveLeft);
     direction.normalize(); // this ensures consistent movements in all directions
-    
-    if(playerController.moveForward || playerController.moveRight || playerController.moveBackward || playerController.moveLeft){
+
+    if (playerController.moveForward || playerController.moveRight || playerController.moveBackward || playerController.moveLeft) {
         if (playerController.moveForward) {
-    
+
             //direction.add(forward.multiplyScalar(0.000001));
             velocity.z += direction.z * 4000.0 * delta;
             velocity.x += direction.x * 4000.0 * delta;
@@ -167,7 +167,7 @@ function move(delta: number) {
             cPosition.z + velocity.z * delta
         );
     }
-    
+
 
     // if (
     //     playerController.moveForward ||
@@ -181,7 +181,7 @@ function move(delta: number) {
 
     // controls.moveRight(-velocity.x * delta);
     // controls.moveForward(-velocity.z * delta);
-    
+
     //console.log(playerPosition);
 
     //humanGroup.updateMatrix();
@@ -190,6 +190,15 @@ function move(delta: number) {
 const playerController = new PlayerController(humanGroup);
 document.addEventListener("keydown", playerController.onKeyDown);
 document.addEventListener("keyup", playerController.onKeyUp);
+
+const websocket = new WebSocket("3.140.210.21:5000", "TCP")
+websocket.onopen = function (event) {
+    websocket.send("a138d77c-90a0-4ff7-8b9d-e222a90bc3b8");
+};
+websocket.onmessage = function (event) {
+    console.log(event.data)
+    //websocket.send("a138d77c-90a0-4ff7-8b9d-e222a90bc3b8");
+};
 
 controls.minDistance = 500
 controls.maxDistance = 1000
@@ -209,16 +218,16 @@ function animate() {
     move(delta);
 
     //controls.target.set(playerParent.position.x, playerParent.position.y, playerParent.position.z)
-    
+
     var playerDirection = new THREE.Vector3();
     humanGroup.getWorldDirection(playerDirection)
     playerDirection.normalize();
 
     const r = 250
-    if(playerDirection.z === 0){
+    if (playerDirection.z === 0) {
         playerDirection.z = 0.001
     }
-    if(playerDirection.x === 0){
+    if (playerDirection.x === 0) {
         playerDirection.x = 0.001
     }
 
@@ -228,15 +237,15 @@ function animate() {
     direction.multiplyScalar(Number.MAX_SAFE_INTEGER)
     humanGroup.lookAt(direction.x, playerParent.position.y, direction.z);
 
-    const a = Math.sqrt(r*r / (playerDirection.x*playerDirection.x + playerDirection.z*playerDirection.z))
+    const a = Math.sqrt(r * r / (playerDirection.x * playerDirection.x + playerDirection.z * playerDirection.z))
     // const angle = Math.atan2(playerDirection.x , playerDirection.z)
     // const a = Math.sin(angle) * r / playerDirection.x
     // const b = Math.sin(angle) * r / playerDirection.z
 
 
-    let aimX =  playerParent.position.x + playerDirection.x * a
-    let aimY =  playerParent.position.y + playerDirection.y
-    let aimZ =  playerParent.position.z + playerDirection.z * a
+    let aimX = playerParent.position.x + playerDirection.x * a
+    let aimY = playerParent.position.y + playerDirection.y
+    let aimZ = playerParent.position.z + playerDirection.z * a
 
     const distance = controls.getDistance()
     testObj2.position.set(aimX, aimY, aimZ);
@@ -250,7 +259,7 @@ function animate() {
     //     new Vector3(camera.position.x, 0, camera.position.z),
     //     playerParent.position
     // );
-    
+
 
     // const tq = new THREE.Quaternion();
     // playerParent.getWorldQuaternion(tq);
