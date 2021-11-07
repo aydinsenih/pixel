@@ -46,3 +46,4 @@ jobs:
                     sudo docker rmi -f $(sudo docker images -a -q)
                     sudo docker pull "'$IMAGE_URL'" 
                     sudo docker run -d -p 80:80 --name=client $(sudo docker images -a -q)
+                  '
