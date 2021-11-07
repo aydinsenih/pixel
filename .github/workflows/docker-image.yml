@@ -1,22 +1,48 @@
 name: Docker Image CI
-
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
+    push:
+        branches: [main]
+    #workflow_dispatch:
+env:
+    IMAGE_URL: ghcr.io/aydinsenih/pixel:${{ github.run_number }}
 jobs:
+    build:
+        runs-on: ubuntu-latest
+        env:
+            CR_PAT: ${{ secrets.CR_PAT }}
+            CI_REGISTRY: ghcr.io
+        steps:
+            - uses: actions/checkout@v2
 
-  build:
+            - name: docker login
+              run: |
+                  echo $CR_PAT | docker login $CI_REGISTRY -u ${{ github.run_id }} --password-stdin
 
-    runs-on: ubuntu-latest
+            - name: docker build
+              run: |
+                  docker build . --tag $IMAGE_URL
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: |
-        npm install
-        npm run build
-        docker build . --file Dockerfile --tag my-image-name:build
-        docker push my-image-name:build
+            - name: docker push
+              run: |
+                  docker push $IMAGE_URL
+
+    Deploy:
+        needs: build
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Deploy in EC2
+              env:
+                  RSA_PRIVATE_KEY: ${{ secrets.AWS_RSA_PRIVATE_KEY  }}
+                  ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID  }}
+
+              run: |
+                  echo "$RSA_PRIVATE_KEY" > private_key && chmod 600 private_key
+                  ssh -o StrictHostKeyChecking=no -i private_key $ACCESS_KEY_ID '
+                    #Now we have got the access of EC2 and we will start the deploy .
+                    sudo docker rm -vf $(sudo docker ps -a -q)
+                    sudo docker rmi -f $(sudo docker images -a -q)
+                    sudo docker pull "'$IMAGE_URL'" 
+                    sudo docker run -d -p 80:80 --name=client $(sudo docker images -a -q)
