@@ -1,6 +1,14 @@
 FROM node:latest
+ENV NODE_ENV=production
+
 WORKDIR /app
-COPY package.json /app
-RUN npm ci --only=production && npm cache clean --force
-COPY . /app
-EXPOSE 8081
+
+COPY ["package.json", "package-lock.json*", "./"]
+
+RUN npm install --production
+
+COPY . .
+
+EXPOSE 80
+
+CMD [ "npm", "start" ]

@@ -4,5 +4,5 @@
         "strict": true,
         "noImplicitAny": false
     },
-    "include": ["**/*.ts"]
+    "include": ["**/*.ts", "../PlayerController.ts", "../client.ts", "../Camera.ts"]
 }

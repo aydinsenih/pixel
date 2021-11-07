@@ -24,6 +24,7 @@ export default class PlayersManager {
     }
 
     static removePlayer(playerID: string) {
+        Scene.GlobalScene.remove(PlayersManager.activePlayerList.find(p => p.id === playerID)?.humanGroup)
         PlayersManager.activePlayerList = PlayersManager.activePlayerList.filter(p => p.id !== playerID);// TODO: kopyalamadan degistir.
     }
 
