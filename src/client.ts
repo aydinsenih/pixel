@@ -17,7 +17,7 @@ function init() {
     document.body.appendChild(stats.dom);
     const playerCamera = new Camera(75, 1000);
     const user = new Player(uuidv4());
-    const socket = new WebSocketClient("ws://3.140.210.21", 5000, user.id);
+    const socket = new WebSocketClient("ws://localhost", 5000, user.id); // ws://3.140.210.21
     playerController = new PlayerController(user, playerCamera);
     new Render();
     new Scene();
@@ -30,9 +30,19 @@ function init() {
 
     setInterval(function () {
         socket.client.send(JSON.stringify({
-            X: user.humanGroup.position.x,
-            Y: user.humanGroup.position.y,
-            Z: user.humanGroup.position.z,
+            Position: 
+            {
+                X: user.humanGroup.position.x.toFixed(2),
+                Y: user.humanGroup.position.y.toFixed(2),
+                Z: user.humanGroup.position.z.toFixed(2),
+            },
+            Quaternion: 
+            {
+                W: user.humanGroup.quaternion.w.toFixed(2),
+                X: user.humanGroup.quaternion.x.toFixed(2),
+                Y: user.humanGroup.quaternion.y.toFixed(2),
+                Z: user.humanGroup.quaternion.z.toFixed(2),
+            }
         }))
     }, 50);
 

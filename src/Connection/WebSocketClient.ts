@@ -1,4 +1,4 @@
-import PlayersManager, { IPlayerPosition } from "../Objects/PlayersManager";
+import PlayersManager, { IPlayerIdAndPlayerWorldLocationMap } from "../Objects/PlayersManager";
 
 export default class WebSocketClient {
     client: WebSocket;
@@ -15,9 +15,13 @@ export default class WebSocketClient {
             this.send(tokenStr);
         };
         this.client.onmessage = function (event) {
-            let playersPositions: IPlayerPosition = {};
-            JSON.parse(event.data).map(data => {
-                playersPositions[data.Id] = { x: data.Position.X, y: data.Position.Y, z: data.Position.Z };
+            let playersPositions: IPlayerIdAndPlayerWorldLocationMap = {};
+            JSON.parse(event.data).map(player => {
+                playersPositions[player.Id] = 
+                { 
+                    position: {x: player.Position.X, y: player.Position.Y, z: player.Position.Z},
+                    quaternion: {w: player.Quaternion.W, x: player.Quaternion.X, y: player.Quaternion.Y, z: player.Quaternion.Z},
+                };
             })
             delete playersPositions[tokenStr] // remove player`s own ID
             PlayersManager.updatePlayers(playersPositions)

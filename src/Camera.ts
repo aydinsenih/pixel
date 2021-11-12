@@ -19,7 +19,7 @@ export default class Camera {
     }
 
     controlsSettings() {
-        Camera.UserControls.minDistance = 10
+        Camera.UserControls.minDistance = 25
         Camera.UserControls.maxDistance = 50
         Camera.UserControls.minPolarAngle = Math.PI / 4
         Camera.UserControls.maxPolarAngle = Math.PI / 2.1
