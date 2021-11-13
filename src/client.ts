@@ -17,7 +17,8 @@ function init() {
     document.body.appendChild(stats.dom);
     const playerCamera = new Camera(75, 1000);
     const user = new Player(uuidv4());
-    const socket = new WebSocketClient("ws://localhost", 5000, user.id); // ws://3.140.210.21
+    user.humanGroup.position.setY(50);
+    const socket = new WebSocketClient("ws://3.140.210.21", 5000, user.id); // ws://3.140.210.21
     playerController = new PlayerController(user, playerCamera);
     new Render();
     new Scene();
@@ -26,7 +27,6 @@ function init() {
     Scene.add(world.floor);
     Scene.add(user.humanGroup);
     Scene.add(Camera.UserCamera);
-    user.humanGroup.position.setY(50);
 
     setInterval(function () {
         socket.client.send(JSON.stringify({
@@ -52,6 +52,8 @@ function init() {
     //track keystrokes
     document.addEventListener("keydown", playerController.onKeyDown);
     document.addEventListener("keyup", playerController.onKeyUp);
+    document.addEventListener("mousedown", playerController.onMouseDown);
+    document.addEventListener("mouseup", playerController.onMouseUp);
 }
 
 

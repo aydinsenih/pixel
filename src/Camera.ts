@@ -19,13 +19,18 @@ export default class Camera {
     }
 
     controlsSettings() {
-        Camera.UserControls.minDistance = 25
+        Camera.UserControls.minDistance = 35
         Camera.UserControls.maxDistance = 50
         Camera.UserControls.minPolarAngle = Math.PI / 4
         Camera.UserControls.maxPolarAngle = Math.PI / 2.1
         Camera.UserControls.rotateSpeed = 0.2
         Camera.UserControls.enableDamping = true
         Camera.UserControls.dampingFactor = 0.2
+        Camera.UserControls.mouseButtons = {
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: THREE.MOUSE.ROTATE
+        }
     }
 
 }

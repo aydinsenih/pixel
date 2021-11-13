@@ -8,11 +8,18 @@ export default class PlayerController {
     moveLeft: boolean = false;
     moveBackward: boolean = false;
     moveRight: boolean = false;
+    Jump: boolean = false;
+    canJump: boolean = true;
     velocity: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
     playerCamera: Camera;
+
+    rotateCharacter: boolean = false;
+    rotateOnlyCamera: boolean = false;
+
     constructor(characterObject: Player, playerCamera: Camera) {
         this.character = characterObject;
         this.playerCamera = playerCamera;
+        this._initCamera();
     }
 
     onKeyDown = (event: any) => {
@@ -20,31 +27,27 @@ export default class PlayerController {
             case "ArrowUp":
             case "KeyW":
                 this.moveForward = true;
-                //this.character.position.z -= 0.1;
                 break;
 
             case "ArrowLeft":
             case "KeyA":
                 this.moveLeft = true;
-                //this.character.position.x -= 0.1;
                 break;
 
             case "ArrowDown":
             case "KeyS":
                 this.moveBackward = true;
-                //this.character.position.z += 0.1;
                 break;
 
             case "ArrowRight":
             case "KeyD":
                 this.moveRight = true;
-                //this.character.position.x += 0.1;
                 break;
 
-            // case 'Space':
-            //     if ( canJump === true ) velocity.y += 350;
-            //     canJump = false;
-            //     break;
+            case 'Space':
+                if ( this.canJump === true ) this.Jump = true;
+                this.canJump = false;
+                break;
         }
     };
 
@@ -53,105 +56,163 @@ export default class PlayerController {
             case "ArrowUp":
             case "KeyW":
                 this.moveForward = false;
-                //this.character.position.z -= 0.1;
                 break;
 
             case "ArrowLeft":
             case "KeyA":
                 this.moveLeft = false;
-                //this.character.position.x -= 0.1;
                 break;
 
             case "ArrowDown":
             case "KeyS":
                 this.moveBackward = false;
-                //this.character.position.z += 0.1;
                 break;
 
             case "ArrowRight":
             case "KeyD":
                 this.moveRight = false;
-                //this.character.position.x += 0.1;
                 break;
-
-            // case 'Space':
-            //     if ( canJump === true ) velocity.y += 350;
-            //     canJump = false;
-            //     break;
         }
     };
 
-    moveScale = 20;
-    _Move(delta: number) {
-        var direction = new THREE.Vector3();
-        Camera.UserCamera.getWorldDirection(direction);
+    onMouseDown = (event: any) => {
+        switch (event.which) {
+            case 1:
+                this.rotateCharacter = true;
+                break;
 
+            case 3:
+                this.rotateOnlyCamera = true;
+                break;
+        }
+        
+    };
+    
+    onMouseUp = (event: any) => {
+        switch (event.which) {
+            case 1:
+                this.rotateCharacter = false;
+                break;
+
+            case 3:
+                this.rotateOnlyCamera = false;
+                break;
+        }
+        
+    };
+
+    moveScale = 20;
+    jumpScale = 5000;
+    gravity = 100;
+    _Move(delta: number) {
+        
         this.velocity.x -= this.velocity.x * 10.0 * delta;
         this.velocity.z -= this.velocity.z * 10.0 * delta;
-        direction.normalize(); // this ensures consistent movements in all directions
+        this.velocity.y -= this.velocity.y * 10.0 * delta;
 
-        if (this.moveForward || this.moveRight || this.moveBackward || this.moveLeft) {
+        if (this.moveForward || this.moveRight || this.moveBackward || this.moveLeft || this.Jump) {
+
+            var playerDirection = new THREE.Vector3();
+            this.character.humanGroup.getWorldDirection(playerDirection);
+            playerDirection.normalize();
+
             if (this.moveForward) {
-
-                //direction.add(forward.multiplyScalar(0.000001));
-                this.velocity.z += direction.z * this.moveScale * delta;
-                this.velocity.x += direction.x * this.moveScale * delta;
+                this.velocity.z += playerDirection.z * this.moveScale * delta;
+                this.velocity.x += playerDirection.x * this.moveScale * delta;
             }
             if (this.moveRight) {
-                //direction.add(forward.multiplyScalar(0.000001));
-                this.velocity.z += direction.x * this.moveScale * delta;
-                this.velocity.x -= direction.z * this.moveScale * delta;
+                this.velocity.z += playerDirection.x * this.moveScale * delta;
+                this.velocity.x -= playerDirection.z * this.moveScale * delta;
             }
             if (this.moveBackward) {
-                //direction.add(forward.multiplyScalar(0.000001));
-                this.velocity.z -= direction.z * this.moveScale * delta;
-                this.velocity.x -= direction.x * this.moveScale * delta;
+                this.velocity.z -= playerDirection.z * this.moveScale * delta;
+                this.velocity.x -= playerDirection.x * this.moveScale * delta;
             }
             if (this.moveLeft) {
-                //direction.add(forward.multiplyScalar(0.000001));
-                this.velocity.z -= direction.x * this.moveScale * delta;
-                this.velocity.x += direction.z * this.moveScale * delta;
+                this.velocity.z -= playerDirection.x * this.moveScale * delta;
+                this.velocity.x += playerDirection.z * this.moveScale * delta;
+            }
+            if (this.Jump) {
+                this.velocity.y += this.jumpScale * delta;
+                this.canJump = false;
+                this.Jump = false;
             }
 
-            const playerPosition = this.character.humanGroup.position;
-            this.character.humanGroup.position.set(
-                playerPosition.x + this.velocity.x * delta,
-                playerPosition.y,
-                playerPosition.z + this.velocity.z * delta
-            );
-            const cPosition = Camera.UserCamera.position;
-            Camera.UserCamera.position.set(
-                cPosition.x + this.velocity.x * delta,
-                cPosition.y,
-                cPosition.z + this.velocity.z * delta
-            );
+        }
+
+        const playerPosition = this.character.humanGroup.position;
+
+        if ( !this.canJump) {
+
+            this.velocity.y -= this.gravity * delta;
+        }
+
+        if(playerPosition.y < 50){
+            playerPosition.y = 50;
+            this.velocity.y = 0;
+            this.canJump = true;
+        }
+    
+
+        this.character.humanGroup.position.set(
+            playerPosition.x + this.velocity.x * delta,
+            playerPosition.y + this.velocity.y * delta,
+            playerPosition.z + this.velocity.z * delta
+        );
+
+        const cPosition = Camera.UserCamera.position;
+        Camera.UserCamera.position.set(
+            cPosition.x + this.velocity.x * delta,
+            cPosition.y + this.velocity.y * delta,
+            cPosition.z + this.velocity.z * delta
+        );
+        this.updateCamera()
+
+    }
+
+   
+    _Rotation() {
+       
+        if (this.rotateCharacter || this.rotateOnlyCamera) {
+            this.updateCamera()
         }
     }
 
-    _Rotation() {
+    _initCamera(){
         var playerDirection = new THREE.Vector3();
-        this.character.humanGroup.getWorldDirection(playerDirection)
+        this.character.humanGroup.getWorldDirection(playerDirection);
         playerDirection.normalize();
-
+        
         const r = 20
-        if (playerDirection.z === 0) {
-            playerDirection.z = 0.001
-        }
-        if (playerDirection.x === 0) {
-            playerDirection.x = 0.001
-        }
-        var direction = new THREE.Vector3();
-        Camera.UserCamera.getWorldDirection(direction);
-        direction.multiplyScalar(Number.MAX_SAFE_INTEGER)
-        this.character.humanGroup.lookAt(direction.x, this.character.humanGroup.position.y, direction.z);
-
-        const rotationFactor = Math.sqrt(r * r / (playerDirection.x * playerDirection.x + playerDirection.z * playerDirection.z))
+        const rotationFactor = Math.sqrt(r**2 / (playerDirection.x**2 + playerDirection.z**2))
 
         let aimX = this.character.humanGroup.position.x + playerDirection.x * rotationFactor;
         let aimY = this.character.humanGroup.position.y + playerDirection.y;
         let aimZ = this.character.humanGroup.position.z + playerDirection.z * rotationFactor;
 
-        //this.playerAim.position.set(aimX, aimY, aimZ);
+        Camera.UserControls.target.set(aimX, aimY, aimZ)
+        Camera.UserControls.update();
+    }
+
+    updateCamera(){
+
+        var playerPosition = this.character.humanGroup.position
+        var cameraPosition = Camera.UserCamera.position
+
+        var newDirection = new THREE.Vector3();
+        newDirection.subVectors(playerPosition , cameraPosition)
+
+        newDirection.normalize();
+        
+        const r = 20
+        const rotationFactor = Math.sqrt(r**2 / (newDirection.x**2 + newDirection.z**2))
+
+        let aimX = this.character.humanGroup.position.x + newDirection.x * rotationFactor;
+        let aimY = this.character.humanGroup.position.y + newDirection.y;
+        let aimZ = this.character.humanGroup.position.z + newDirection.z * rotationFactor;
+
+        if(this.rotateCharacter)
+            this.character.humanGroup.lookAt(aimX, aimY, aimZ);
         Camera.UserControls.target.set(aimX, aimY, aimZ)
         Camera.UserControls.update();
     }
