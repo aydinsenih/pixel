@@ -17,6 +17,6 @@ module.exports = {
     output: {
         hashFunction: "xxhash64",
         filename: "bundle.js",
-        path: path.resolve(__dirname, "./dist/client"),
+        path: path.resolve(__dirname, "./dist"),
     },
 };

@@ -30,13 +30,13 @@ function init() {
 
     setInterval(function () {
         socket.client.send(JSON.stringify({
-            Position: 
+            Position:
             {
                 X: user.humanGroup.position.x.toFixed(2),
                 Y: user.humanGroup.position.y.toFixed(2),
                 Z: user.humanGroup.position.z.toFixed(2),
             },
-            Quaternion: 
+            Quaternion:
             {
                 W: user.humanGroup.quaternion.w.toFixed(2),
                 X: user.humanGroup.quaternion.x.toFixed(2),

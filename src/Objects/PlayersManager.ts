@@ -16,7 +16,7 @@ export interface IPlayerWorldLocation {
     position: IPosition,
     quaternion: IQuaternion,
 }
-export interface IPlayerIdAndPlayerWorldLocationMap{
+export interface IPlayerIdAndPlayerWorldLocationMap {
     [playerID: string]: IPlayerWorldLocation,
 }
 
@@ -31,12 +31,13 @@ export default class PlayersManager {
         newPlayer.humanGroup.position.set(playerWorldLocation.position.x, playerWorldLocation.position.y, playerWorldLocation.position.z);
         newPlayer.humanGroup.quaternion.set(playerWorldLocation.quaternion.x, playerWorldLocation.quaternion.y, playerWorldLocation.quaternion.z, playerWorldLocation.quaternion.w);
         PlayersManager.activePlayerList.push(newPlayer);
+        newPlayer.humanGroup.name = playerID;
         Scene.add(newPlayer.humanGroup);
     }
 
-    static removePlayer(playerID: string) {
-        Scene.GlobalScene.remove(PlayersManager.activePlayerList.find(p => p.id === playerID)?.humanGroup)
-        PlayersManager.activePlayerList = PlayersManager.activePlayerList.filter(p => p.id !== playerID);// TODO: kopyalamadan degistir.
+    static removePlayer(player: Player) {
+        const object = Scene.GlobalScene.getObjectByProperty('name', player.id);
+        Scene.GlobalScene.remove(object);
     }
 
     static updatePlayers(playerIdAndPlayerWorldLocationMap: IPlayerIdAndPlayerWorldLocationMap) {
@@ -47,7 +48,7 @@ export default class PlayersManager {
                 PlayersManager.activePlayerList[i].humanGroup.quaternion.set(selectedPlayer.quaternion.x, selectedPlayer.quaternion.y, selectedPlayer.quaternion.z, selectedPlayer.quaternion.w);
                 delete playerIdAndPlayerWorldLocationMap[PlayersManager.activePlayerList[i].id]
             } else {
-                this.removePlayer(PlayersManager.activePlayerList[i].id)
+                this.removePlayer(PlayersManager.activePlayerList[i])
             }
         }
         for (let key in playerIdAndPlayerWorldLocationMap) {

@@ -45,7 +45,7 @@ export default class PlayerController {
                 break;
 
             case 'Space':
-                if ( this.canJump === true ) this.Jump = true;
+                if (this.canJump === true) this.Jump = true;
                 this.canJump = false;
                 break;
         }
@@ -85,9 +85,9 @@ export default class PlayerController {
                 this.rotateOnlyCamera = true;
                 break;
         }
-        
+
     };
-    
+
     onMouseUp = (event: any) => {
         switch (event.which) {
             case 1:
@@ -98,14 +98,14 @@ export default class PlayerController {
                 this.rotateOnlyCamera = false;
                 break;
         }
-        
+
     };
 
     moveScale = 20;
-    jumpScale = 5000;
+    jumpScale = 50;
     gravity = 100;
     _Move(delta: number) {
-        
+
         this.velocity.x -= this.velocity.x * 10.0 * delta;
         this.velocity.z -= this.velocity.z * 10.0 * delta;
         this.velocity.y -= this.velocity.y * 10.0 * delta;
@@ -133,7 +133,7 @@ export default class PlayerController {
                 this.velocity.x += playerDirection.z * this.moveScale * delta;
             }
             if (this.Jump) {
-                this.velocity.y += this.jumpScale * delta;
+                this.velocity.y += this.jumpScale;
                 this.canJump = false;
                 this.Jump = false;
             }
@@ -142,17 +142,17 @@ export default class PlayerController {
 
         const playerPosition = this.character.humanGroup.position;
 
-        if ( !this.canJump) {
+        if (!this.canJump) {
 
             this.velocity.y -= this.gravity * delta;
         }
 
-        if(playerPosition.y < 50){
+        if (playerPosition.y < 50) {
             playerPosition.y = 50;
             this.velocity.y = 0;
             this.canJump = true;
         }
-    
+
 
         this.character.humanGroup.position.set(
             playerPosition.x + this.velocity.x * delta,
@@ -170,21 +170,21 @@ export default class PlayerController {
 
     }
 
-   
+
     _Rotation() {
-       
+
         if (this.rotateCharacter || this.rotateOnlyCamera) {
             this.updateCamera()
         }
     }
 
-    _initCamera(){
+    _initCamera() {
         var playerDirection = new THREE.Vector3();
         this.character.humanGroup.getWorldDirection(playerDirection);
         playerDirection.normalize();
-        
+
         const r = 20
-        const rotationFactor = Math.sqrt(r**2 / (playerDirection.x**2 + playerDirection.z**2))
+        const rotationFactor = Math.sqrt(r ** 2 / (playerDirection.x ** 2 + playerDirection.z ** 2))
 
         let aimX = this.character.humanGroup.position.x + playerDirection.x * rotationFactor;
         let aimY = this.character.humanGroup.position.y + playerDirection.y;
@@ -194,24 +194,24 @@ export default class PlayerController {
         Camera.UserControls.update();
     }
 
-    updateCamera(){
+    updateCamera() {
 
         var playerPosition = this.character.humanGroup.position
         var cameraPosition = Camera.UserCamera.position
 
         var newDirection = new THREE.Vector3();
-        newDirection.subVectors(playerPosition , cameraPosition)
+        newDirection.subVectors(playerPosition, cameraPosition)
 
         newDirection.normalize();
-        
+
         const r = 20
-        const rotationFactor = Math.sqrt(r**2 / (newDirection.x**2 + newDirection.z**2))
+        const rotationFactor = Math.sqrt(r ** 2 / (newDirection.x ** 2 + newDirection.z ** 2))
 
         let aimX = this.character.humanGroup.position.x + newDirection.x * rotationFactor;
         let aimY = this.character.humanGroup.position.y + newDirection.y;
         let aimZ = this.character.humanGroup.position.z + newDirection.z * rotationFactor;
 
-        if(this.rotateCharacter)
+        if (this.rotateCharacter)
             this.character.humanGroup.lookAt(aimX, aimY, aimZ);
         Camera.UserControls.target.set(aimX, aimY, aimZ)
         Camera.UserControls.update();
