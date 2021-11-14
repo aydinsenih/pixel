@@ -18,7 +18,7 @@ function init() {
     const playerCamera = new Camera(75, 1000);
     const user = new Player(uuidv4());
     user.humanGroup.position.setY(50);
-    const socket = new WebSocketClient("ws://3.140.210.21", 5000, user.id); // ws://3.140.210.21
+    const socket = new WebSocketClient("ws://3.140.210.21", 5000, user.id, animate); // ws://3.140.210.21
     playerController = new PlayerController(user, playerCamera);
     new Render();
     new Scene();
@@ -45,6 +45,7 @@ function init() {
             }
         }))
     }, 50);
+
 
     //resize window
     window.addEventListener("resize", Camera.onWindowResize, false);
@@ -74,4 +75,4 @@ function animate() {
 //     renderer.render(scene, camera);
 // }
 init();
-animate();
+//animate(); //invoked in the websocket when web socket is connected
