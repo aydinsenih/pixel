@@ -1,6 +1,7 @@
 const { merge } = require("webpack-merge");
 const common = require("./webpack.common.js");
 const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = merge(common, {
     mode: "development",
@@ -11,4 +12,28 @@ module.exports = merge(common, {
         },
         hot: true,
     },
+    plugins: [
+        new HtmlWebpackPlugin({
+            inject: "body",
+            template: "./dist/index.html",
+            filename: "index.html",
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            chunks: [`index`],
+        }),
+
+        new HtmlWebpackPlugin({
+            template: "./dist/play.html",
+            filename: "play.html",
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            chunks: [`play`],
+        }),
+
+        //new UglifyJsPlugin(),
+    ],
 });

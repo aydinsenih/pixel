@@ -1,7 +1,11 @@
 const path = require("path");
 
 module.exports = {
-    entry: "./src/client.ts",
+    // entry: "./src/client.ts",
+    entry: {
+        main: "./src/client.ts",
+        test: "./src/test.js",
+    },
     module: {
         rules: [
             {
@@ -16,7 +20,7 @@ module.exports = {
     },
     output: {
         hashFunction: "xxhash64",
-        filename: "bundle.js",
+        filename: "[name].js",
         path: path.resolve(__dirname, "./dist"),
     },
 };
