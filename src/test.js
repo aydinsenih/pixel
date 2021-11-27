@@ -8,6 +8,12 @@
 // import World from "./World/World";
 // import WebSocketClient from "./Connection/WebSocketClient";
 // import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
+// import { wrapper } from "axios-cookiejar-support";
+// import { CookieJar } from "tough-cookie";
+
+// const jar = new CookieJar();
+// const client = wrapper(axios.create({ jar }));
 
 // No semicolons used here =)
 
@@ -98,14 +104,73 @@ var signIn = function () {
     auth2.signIn();
 };
 
+axios.defaults.withCredentials = true;
+async function user() {
+    const auth = await axios.get(
+        "http://3.140.210.21:5000/user/authorize?googleIdToken=" +
+            googleUser.getAuthResponse().id_token
+    );
+    window.localStorage.setItem("p_token", auth.data.pToken);
+
+    // const create = await axios.post("http://3.140.210.21:5000/user/create", {
+    //     googleIdToken: googleUser.getAuthResponse().id_token,
+    // });
+
+    //document.cookie = `p_token=${auth.data.pToken}`;
+    const user = await axios.get("http://3.140.210.21:5000/user/", {
+        headers: {
+            Authorization: "Bearer " + auth.data.pToken,
+        },
+    });
+
+    console.log(user);
+}
+
 // Updates the properties in the Google User table using the current user.
 
 var updateGoogleUser = function () {
     // Check if the user is signed in
     if (auth2.isSignedIn.get()) {
+        // axios.defaults.withCredentials = true;
+        // axios
+        //     .get(
+        //         "http://3.140.210.21:5000/user/authorize?googleIdToken=" +
+        //             googleUser.getAuthResponse().id_token
+        //     )
+        //     .then((res) => {
+        //         console.log(res);
+        //     })
+        //     .catch(function (err) {
+        //         console.log(err.toJSON().status);
+        //         if (err.toJSON().status === 404) {
+        //             axios
+        //                 .post(
+        //                     "http://3.140.210.21:5000/user/create",
+        //                     {
+        //                         googleIdToken:
+        //                             googleUser.getAuthResponse().id_token,
+        //                     },
+        //                     { withCredentials: true }
+        //                 )
+        //                 .then((res) => {
+        //                     axios
+        //                         .get("http://3.140.210.21:5000/user", {
+        //                             withCredentials: true,
+        //                         })
+        //                         .then((res) => {
+        //                             console.log(res);
+        //                         });
+        //                 })
+        //                 .catch((err) => {
+        //                     console.log(err.toJSON());
+        //                 });
+        //         }
+        //     });
+        user();
+
         var profile = googleUser.getBasicProfile();
         console.log(profile);
-        console.log(googleUser.getAuthResponse());
+        console.log("bumu", googleUser.getAuthResponse());
 
         // Create a container with user info
         var container = document.createElement("div");
@@ -114,7 +179,7 @@ var updateGoogleUser = function () {
         mainHeading.className = "main-heading";
         mainHeading.textContent = "User details";
         var heading = document.createElement("h2");
-        console.log(profile);
+        console.log("test", profile);
         heading.textContent = profile.getName();
         var avatar = document.createElement("img");
         avatar.className = "avatar";

@@ -12,13 +12,18 @@ import { v4 as uuidv4 } from 'uuid';
 let prevTime = performance.now();
 const stats = Stats();
 var playerController;
+var userPositionData;
 
 function init() {
     document.body.appendChild(stats.dom);
     const playerCamera = new Camera(75, 1000);
     const user = new Player(uuidv4());
     user.humanGroup.position.setY(5);
-    const socket = new WebSocketClient("ws://3.140.210.21", 5000, user.id, animate); // ws://3.140.210.21
+    const token = window.localStorage.getItem("p_token");
+    if (!token) {
+        window.location.replace("http://localhost:8080/play.html");
+    }
+    const socket = new WebSocketClient("ws://3.140.210.21", 80, token || "", animate); // ws://3.140.210.21
     playerController = new PlayerController(user, playerCamera);
     new Render();
     new Scene();
@@ -28,7 +33,10 @@ function init() {
     Scene.add(user.humanGroup);
     Scene.add(Camera.UserCamera);
 
-    setInterval(function () {
+    userPositionData = setInterval(function () {
+        if (socket.client.readyState === 3) { //readyState 3 means websocket is closed. refer to https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState
+            clearInterval(userPositionData)
+        }
         socket.client.send(JSON.stringify({
             Position:
             {
